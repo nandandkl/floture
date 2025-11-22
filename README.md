@@ -54,3 +54,5 @@ npm run dev
 ## 🤝 Contributing
 Contributions are welcome!<br>
 Feel free to fork the repo, create branches, and submit pull requests.
+
+> 💡 **Note:** Currently, Floture can only predict the following flowers: **Daisy, Dandelion, Rose, Sunflower, Tulip**. Support for more flower types will be added in future updates.
