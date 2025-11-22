@@ -11,9 +11,11 @@ It leverages machine learning for flower recognition and provides a simple, intu
 - Email verification for secure user access.
 - Future-ready for expansion with more flower classes and features.
 
+> **Note:** Floture currently predicts only **Daisy, Dandelion, Rose, Sunflower, Tulip**. Support for more flower types will be added in future updates.
+
 ## 🌐 Demo
 
-🔗 Explore the ask-clouds web app by visiting [Floture Live Demo](https://flotur.vercel.app/) in your browser.
+🔗 Explore the floture web app by visiting [Floture Live Demo](https://flotur.vercel.app/) in your browser.
 
 ## 🛠️ Tech Stack
 
@@ -54,5 +56,3 @@ npm run dev
 ## 🤝 Contributing
 Contributions are welcome!<br>
 Feel free to fork the repo, create branches, and submit pull requests.
-
-> 💡 **Note:** Currently, Floture can only predict the following flowers: **Daisy, Dandelion, Rose, Sunflower, Tulip**. Support for more flower types will be added in future updates.
