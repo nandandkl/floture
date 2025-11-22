@@ -6,9 +6,9 @@ It leverages machine learning for flower recognition and provides a simple, intu
 ## ✨ Features
 
 - Upload an image of a flower to identify it.
-- Fast and accurate classification using a pre-trained machine learning model.
+- Flower classification using a pre-trained machine learning model.
 - Minimal and responsive UI design for desktop and mobile.
-- Email verification for secure user access (if implemented).
+- Email verification for secure user access.
 - Future-ready for expansion with more flower classes and features.
 
 ## 🌐 Demo
@@ -18,9 +18,9 @@ It leverages machine learning for flower recognition and provides a simple, intu
 ## 🛠️ Tech Stack
 
 - **Frontend:** Next.js, React, Tailwind CSS
-- **Backend (Optional):** FastAPI / Python (for ML inference)
-- **Machine Learning:** TensorFlow / PyTorch (depending on your model)
-- **Database (Optional):** PostgreSQL / MongoDB
+- **Backend:** FastAPI / Python (for ML inference)
+- **Machine Learning:** TensorFlow
+- **Database:** MongoDB
 - **Deployment:** Vercel
 
 ## 📦 Installation
@@ -45,11 +45,12 @@ npm run dev
 2. Wait for the model to analyze the image.
 3. Get the flower classification result along with relevant details.
 
-## 🤝 Contributing
-Contributions are welcome!<br>
-Feel free to fork the repo, create branches, and submit pull requests.
 
 ## 💬 Feedback
 - Found a bug? Have a feature request?
 - Open an issue
 - Or reach out via GitHub
+
+## 🤝 Contributing
+Contributions are welcome!<br>
+Feel free to fork the repo, create branches, and submit pull requests.
