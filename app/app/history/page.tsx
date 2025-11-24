@@ -69,14 +69,17 @@ export default function HistoryPage() {
             </p>
         </div>
         {history.length > 0 && (
-          <Button
-            variant="outline"
-            className="border-red-200 text-red-600 hover:bg-red-300 bg-transparent transition-all duration-300"
-            onClick={handleClearAll}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Clear All
-          </Button>
+        <Button
+          variant="outline"
+          className="border-red-200 text-red-600 hover:bg-red-300 bg-transparent transition-all duration-300"
+          onClick={handleClearAll}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+
+          <span className="max-[400px]:hidden">Clear All</span>
+
+          <span className="hidden max-[400px]:inline">Clear</span>
+        </Button>
         )}
       </div>
 
