@@ -7,51 +7,54 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
-  try {
-    const { name, email, password } = await req.json();
+    try {
+        const { name, email, password } = await req.json();
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    const client = await clientPromise;
-    const db = client.db("flotureDB");
+        const client = await clientPromise;
+        const db = client.db("flotureDB");
 
-    // Check if email exists
-    const existing = await db.collection("users").findOne({ email });
-    if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
-    }
+        // Check if email exists
+        const existing = await db.collection("users").findOne({ email });
+        if (existing) {
+            if (!existing.password) {
+                return NextResponse.json({ error: "This email is already registered via Google. Please sign in with Google instead." }, { status: 400 });
+            }
+            return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+        }
 
-    // Generate token
-    const token = uuidv4();
+        // Generate token
+        const token = uuidv4();
 
-    // Save user (unverified)
-    await db.collection("users").insertOne({
-      name,
-      email,
-      password: hashedPassword,
-      verified: false,
-      verificationToken: token,
-      createdAt: new Date(),
-    });
+        // Save user (unverified)
+        await db.collection("users").insertOne({
+            name,
+            email,
+            password: hashedPassword,
+            verified: false,
+            verificationToken: token,
+            createdAt: new Date(),
+        });
 
-    // Send email
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+        // Send email
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
 
-    const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify?token=${token}`;
+        const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify?token=${token}`;
 
-    await transporter.sendMail({
-      from: `"Floture" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "You're Almost There! 🚀",
-      html: `
+        await transporter.sendMail({
+            from: `"Floture" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "You're Almost There! 🚀",
+            html: `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -172,11 +175,11 @@ export async function POST(req: Request) {
 
 
       `,
-    });
+        });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
-  }
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    }
 }

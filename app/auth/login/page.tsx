@@ -6,18 +6,35 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { Suspense, useEffect } from "react"
 import { Separator } from "@/components/ui/separator"
 import { ArrowRight, TriangleAlert } from "lucide-react"
 import { signIn } from "next-auth/react"
 
 export default function Component() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const err = searchParams.get("error")
+    if (err === "emailPasswordAccount") {
+      setError("This email is registered with a password. Please sign in using your email and password.")
+    }
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

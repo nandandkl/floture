@@ -80,6 +80,7 @@ export default function HistoryPage() {
 
           <span className="hidden max-[400px]:inline">Clear</span>
         </Button>
+
         )}
       </div>
 

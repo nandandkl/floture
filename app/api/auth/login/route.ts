@@ -12,6 +12,12 @@ export async function POST(req: Request) {
 
     const user = await db.collection("users").findOne({ email });
     if (!user) return NextResponse.json({ error: "Invalid email or password" }, { status: 400 });
+    
+    // Check if user is a Google account (no password)
+    if (!user.password) {
+      return NextResponse.json({ error: "This email is associated with a Google account. Please sign in with Google." }, { status: 400 });
+    }
+
     if (!user.verified) return NextResponse.json({ error: "Please verify your email first" }, { status: 400 });
 
     const match = await bcrypt.compare(password, user.password);
