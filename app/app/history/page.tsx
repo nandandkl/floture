@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Trash2, Calendar, Percent, History} from "lucide-react"
-import Image from "next/image"
+import { Trash2, Calendar, Percent, History } from "lucide-react"
+import { useSession } from "next-auth/react"
 
 interface HistoryItem {
+  _id: string
   flower: string
   confidence: number
   image: string
@@ -14,38 +15,76 @@ interface HistoryItem {
 }
 
 export default function HistoryPage() {
+  const { data: session } = useSession()
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load user's detection history
-    const currentUser = JSON.parse(localStorage.getItem("floture_current_user") || "{}")
-    const histories = JSON.parse(localStorage.getItem("floture_histories") || "{}")
+    const fetchHistory = async () => {
+      const currentUserStr = localStorage.getItem("floture_current_user")
+      const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null
+      const userEmail = session?.user?.email || currentUser?.email
 
-    if (histories[currentUser.email]) {
-      setHistory(histories[currentUser.email].reverse())
+      if (!userEmail) {
+        if (session === null || (session === undefined && currentUser === null)) {
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/history?email=${userEmail}`)
+        if (response.ok) {
+          const data = await response.json()
+          setHistory(data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch history:", err)
+      } finally {
+        setLoading(false)
+      }
     }
-    setLoading(false)
-  }, [])
 
-  const handleDelete = (index: number) => {
-    const currentUser = JSON.parse(localStorage.getItem("floture_current_user") || "{}")
-    const histories = JSON.parse(localStorage.getItem("floture_histories") || "{}")
+    fetchHistory()
+  }, [session])
 
-    if (histories[currentUser.email]) {
-      histories[currentUser.email].splice(history.length - 1 - index, 1)
-      localStorage.setItem("floture_histories", JSON.stringify(histories))
-      setHistory(history.filter((_, i) => i !== index))
+  const handleDelete = async (id: string) => {
+    const currentUserStr = localStorage.getItem("floture_current_user")
+    const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null
+    const userEmail = session?.user?.email || currentUser?.email
+
+    if (!userEmail) return
+
+    try {
+      const response = await fetch(`/api/history?email=${userEmail}&id=${id}`, {
+        method: "DELETE",
+      })
+      if (response.ok) {
+        setHistory(history.filter((item) => item._id !== id))
+      }
+    } catch (err) {
+      console.error("Failed to delete history item:", err)
     }
   }
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (window.confirm("Are you sure you want to delete all detection history? This cannot be undone.")) {
-      const currentUser = JSON.parse(localStorage.getItem("floture_current_user") || "{}")
-      const histories = JSON.parse(localStorage.getItem("floture_histories") || "{}")
-      histories[currentUser.email] = []
-      localStorage.setItem("floture_histories", JSON.stringify(histories))
-      setHistory([])
+      const currentUserStr = localStorage.getItem("floture_current_user")
+      const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null
+      const userEmail = session?.user?.email || currentUser?.email
+
+      if (!userEmail) return
+
+      try {
+        const response = await fetch(`/api/history?email=${userEmail}`, {
+          method: "DELETE",
+        })
+        if (response.ok) {
+          setHistory([])
+        }
+      } catch (err) {
+        console.error("Failed to clear history:", err)
+      }
     }
   }
 
@@ -65,21 +104,21 @@ export default function HistoryPage() {
             <h1 className="text-4xl font-bold text-foreground">Detection History</h1>
           </div>
           <p className="text-muted-foreground ml-11">
-              {history.length} flower{history.length !== 1 ? "s" : ""} detected
-            </p>
+            {history.length} flower{history.length !== 1 ? "s" : ""} detected
+          </p>
         </div>
         {history.length > 0 && (
-        <Button
-          variant="outline"
-          className="border-red-200 text-red-600 hover:bg-red-300 bg-transparent transition-all duration-300"
-          onClick={handleClearAll}
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
+          <Button
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-300 bg-transparent transition-all duration-300"
+            onClick={handleClearAll}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
 
-          <span className="max-[400px]:hidden">Clear All</span>
+            <span className="max-[400px]:hidden">Clear All</span>
 
-          <span className="hidden max-[400px]:inline">Clear</span>
-        </Button>
+            <span className="hidden max-[400px]:inline">Clear</span>
+          </Button>
 
         )}
       </div>
@@ -106,10 +145,6 @@ export default function HistoryPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {history.map((item, idx) => (
             <Card key={idx} className="overflow-hidden p-0 border border-border hover:shadow-lg transition-shadow">
-              {/* Image */}
-              <div className="relative w-full aspect-square bg-secondary overflow-hidden">
-                <Image src={item.image || "/placeholder.svg"} alt={item.flower} fill className="object-cover" />
-              </div>
 
               {/* Content */}
               <div className="p-4 space-y-3">
@@ -130,7 +165,7 @@ export default function HistoryPage() {
                   variant="outline"
                   size="sm"
                   className="w-full border-red-200 text-red-600 hover:bg-red-300 bg-transparent transition-all duration-300"
-                  onClick={() => handleDelete(idx)}
+                  onClick={() => handleDelete(item._id)}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete

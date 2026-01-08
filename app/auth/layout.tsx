@@ -6,5 +6,5 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <SessionWrap><div className="min-h-screen bg-background flex items-center justify-center p-4">{children}</div></SessionWrap>
+  return <div className="min-h-screen bg-background flex items-center justify-center p-4">{children}</div>
 }

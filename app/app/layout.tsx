@@ -8,5 +8,5 @@ export default function AppLayoutWrapper({
 }: {
   children: React.ReactNode
 }) {
-  return <SessionWrap><AppLayout>{children}</AppLayout></SessionWrap>
+  return <AppLayout>{children}</AppLayout>
 }

@@ -8,21 +8,23 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
+import { useSession } from "next-auth/react"
 
 
 export default function Home() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
 
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle");
+  const [newsletterStatus, setNewsletterStatus] = useState("idle");
 
 
   useEffect(() => {
     const user = localStorage.getItem("floture_current_user")
-    setIsLoggedIn(!!user)
-  }, [])
+    setIsLoggedIn(!!user || !!session)
+  }, [session])
 
   return (
     <main className="min-h-screen bg-background">
@@ -89,15 +91,15 @@ export default function Home() {
                 </Button>
               </Link>
             )}
-              
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-border text-foreground hover:bg-secondary bg-transparent transition-all duration-300"
-                onClick={() => setShowVideo(true)}
-              >
-                Watch Demo
-              </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-border text-foreground hover:bg-secondary bg-transparent transition-all duration-300"
+              onClick={() => setShowVideo(true)}
+            >
+              Watch Demo
+            </Button>
 
           </div>
         </div>
@@ -224,7 +226,7 @@ export default function Home() {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              setStatus("sending");
+              setNewsletterStatus("sending");
 
               const res = await fetch("/api/newsletter", {
                 method: "POST",
@@ -233,15 +235,15 @@ export default function Home() {
               });
 
               if (res.ok) {
-                setStatus("success");
+                setNewsletterStatus("success");
                 setEmail("");
 
                 // Make it return to normal button after 3 seconds (optional)
-                setTimeout(() => setStatus("idle"), 3000);
+                setTimeout(() => setNewsletterStatus("idle"), 3000);
               } else {
-                setStatus("error");
+                setNewsletterStatus("error");
 
-                setTimeout(() => setStatus("idle"), 3000);
+                setTimeout(() => setNewsletterStatus("idle"), 3000);
               }
             }}
             className="w-full"
@@ -262,20 +264,20 @@ export default function Home() {
               <Button
                 type="submit"
                 size="lg"
-                disabled={status === "sending" || status === "success"}
+                disabled={newsletterStatus === "sending" || newsletterStatus === "success"}
                 className="bg-background/80 text-primary hover:bg-secondary/80 transition-all duration-300"
               >
-                {status === "idle" && (
+                {newsletterStatus === "idle" && (
                   <>
                     Subscribe <ArrowRight className="ml-2 w-4 h-4" />
                   </>
                 )}
 
-                {status === "sending" && "Subscribing..."}
+                {newsletterStatus === "sending" && "Subscribing..."}
 
-                {status === "success" && "Subscribed!"}
+                {newsletterStatus === "success" && "Subscribed!"}
 
-                {status === "error" && "Retry ✖"}
+                {newsletterStatus === "error" && "Retry ✖"}
               </Button>
             </div>
           </form>
@@ -292,11 +294,11 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                  <img
-                    src="/logo.png"
-                    alt="Floture Logo"
-                    className="w-6 h-6 object-contain drop-shadow-sm"
-                  />
+                <img
+                  src="/logo.png"
+                  alt="Floture Logo"
+                  className="w-6 h-6 object-contain drop-shadow-sm"
+                />
                 <span className="font-semibold text-foreground">floture</span>
               </div>
               <p className="text-sm text-muted-foreground">AI-powered flower identification</p>
@@ -408,7 +410,7 @@ export default function Home() {
 
 
     </main>
-    
+
   )
 }
 

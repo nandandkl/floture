@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Upload, Loader2, AlertCircle, CheckCircle2, Sparkles } from "lucide-react"
 import Image from "next/image"
+import { useSession } from "next-auth/react"
 
 interface DetectionResult {
   flower: string
@@ -58,6 +59,7 @@ const FLOWER_INFO: any = {
 }
 
 export default function DetectPage() {
+  const { data: session } = useSession()
   const [image, setImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<DetectionResult | null>(null)
@@ -119,19 +121,30 @@ export default function DetectPage() {
 
       setResult(flowerData)
 
-      const currentUser = JSON.parse(localStorage.getItem("floture_current_user") || "{}")
-      const histories = JSON.parse(localStorage.getItem("floture_histories") || "{}")
+      const currentUserStr = localStorage.getItem("floture_current_user")
+      const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null
+      const userEmail = session?.user?.email || currentUser?.email
 
-      if (!histories[currentUser.email]) histories[currentUser.email] = []
+      if (!userEmail) {
+        console.warn("No user email found for saving history")
+        return
+      }
 
-      histories[currentUser.email].push({
-        flower: flowerData.flower,
-        confidence: flowerData.confidence,
-        image: image,
-        timestamp: new Date().toISOString(),
-      })
-
-      localStorage.setItem("floture_histories", JSON.stringify(histories))
+      // Save to MongoDB via API
+      try {
+        await fetch("/api/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: userEmail,
+            flower: flowerData.flower,
+            confidence: flowerData.confidence,
+            image: image,
+          }),
+        });
+      } catch (saveErr) {
+        console.error("Failed to save history to database:", saveErr);
+      }
     } catch (err) {
       setError("Detection failed. Please try another image.")
     } finally {
@@ -179,7 +192,7 @@ export default function DetectPage() {
       ) : (
         <div className="flex justify-center">
           <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8">
-            
+
             {/* IMAGE + BUTTON */}
             <div className="space-y-4">
               <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-secondary border border-border shadow-lg">
@@ -197,11 +210,11 @@ export default function DetectPage() {
               )}
               {result && (
                 <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 font-semibold rounded-lg transition-all"
-                    onClick={handleReset}
-                  >
-                    Detect Another Flower
-                  </Button>
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 font-semibold rounded-lg transition-all"
+                  onClick={handleReset}
+                >
+                  Detect Another Flower
+                </Button>
               )}
             </div>
 
@@ -236,7 +249,7 @@ export default function DetectPage() {
                 </>
               ) : (
                 <Card className="p-8 border border-border space-y-6 bg-gradient-to-br from-card to-secondary/30 shadow-xl rounded-xl">
-                  
+
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h2 className="text-3xl font-bold text-foreground mb-3">{result.flower}</h2>
